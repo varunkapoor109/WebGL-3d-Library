@@ -15,10 +15,10 @@ const PARTICLE_COUNT = 3000;
 
 // Color palettes
 const COOL_PALETTE = [
-  new THREE.Color("#6366f1"),
-  new THREE.Color("#8b5cf6"),
-  new THREE.Color("#7c3aed"),
-  new THREE.Color("#a78bfa"),
+  new THREE.Color("#4ade80"),
+  new THREE.Color("#22c55e"),
+  new THREE.Color("#86efac"),
+  new THREE.Color("#16a34a"),
 ];
 
 const WARM_PALETTE = [

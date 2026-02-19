@@ -51,17 +51,34 @@ export interface SvgParticlesSettings {
   svgName: string | null;          // filename for display
 }
 
+// Generate circle points as the default shape
+function generateCirclePoints(count: number, radius: number): Float32Array {
+  const points = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2;
+    // Add slight jitter so points don't stack on a thin ring
+    const r = radius + (Math.random() - 0.5) * 0.3;
+    points[i * 3] = Math.cos(angle) * r + (Math.random() - 0.5) * 0.15;
+    points[i * 3 + 1] = Math.sin(angle) * r + (Math.random() - 0.5) * 0.15;
+    const z1 = Math.random(), z2 = Math.random();
+    points[i * 3 + 2] = (z1 + z2 - 1.0) * 1.2;
+  }
+  return points;
+}
+
+const defaultCircleTargets = generateCirclePoints(5000, 3);
+
 const svgParticlesDefaults: SvgParticlesSettings = {
   blur: 30,
-  color: "#8b5cf6",
+  color: "#facc15",
   intensity: 50,
   angleX: 0,
   angleY: 20,
   angleZ: 0,
-  particleCount: 2000,
-  svgTargets: null,
+  particleCount: 5000,
+  svgTargets: defaultCircleTargets,
   svgRaw: null,
-  svgName: null,
+  svgName: "Circle (default)",
 };
 
 export const svgParticlesSettings: SvgParticlesSettings = { ...svgParticlesDefaults };
@@ -80,9 +97,9 @@ export interface ParticleStreamSettings {
 const particleStreamDefaults: ParticleStreamSettings = {
   colorTop: "#c4b5fd",
   colorBottom: "#7c3aed",
-  speed: 0.5,
-  particleCount: 3000,
-  motionBlur: 50,
+  speed: 0.4,
+  particleCount: 1400,
+  motionBlur: 100,
 };
 
 export const particleStreamSettings: ParticleStreamSettings = { ...particleStreamDefaults };
