@@ -11,7 +11,7 @@ export function Sidebar() {
   const { selected, setSelected } = useAnimationStore();
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r border-[var(--border)] bg-[var(--sidebar)]">
+    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--sidebar)]">
       <div className="px-4 py-4">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
           Animations

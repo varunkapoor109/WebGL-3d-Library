@@ -1,62 +1,126 @@
-export function generateCode(settings: { shape: string; blur: number; color: string }): string {
-  const size = (0.02 + (settings.blur / 100) * 0.13).toFixed(3);
-  const opacity = (1 - (settings.blur / 100) * 0.5).toFixed(2);
+export function generateCode(settings: { shape: string; blur: number; color: string; glow?: boolean; intensity?: number }): string {
   const baseColor = settings.color;
   const shape = settings.shape || "circle";
+  const blur = settings.blur;
+  const blurPx = ((blur / 100) * 12).toFixed(1);
+  const glow = settings.glow ?? false;
+  const intensity = settings.intensity ?? 50;
+
+  const size = glow
+    ? (0.08 + (blur / 100) * 0.14).toFixed(3)
+    : (0.04 + (blur / 100) * 0.1).toFixed(3);
+
+  const twinkleAmp = glow ? (0.5 * intensity / 100).toFixed(3) : "0";
 
   let shapeDrawCode: string;
   switch (shape) {
     case "triangle":
-      shapeDrawCode = `    ctx.beginPath();
-    for (let i = 0; i < 3; i++) {
-      const angle = (i / 3) * Math.PI * 2 - Math.PI / 2;
-      const x = cx + Math.cos(angle) * r;
-      const y = cy + Math.sin(angle) * r;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();`;
+      shapeDrawCode = `      ctx.beginPath();
+      for (let i = 0; i < 3; i++) {
+        const angle = (i / 3) * Math.PI * 2 - Math.PI / 2;
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();`;
       break;
     case "square":
-      shapeDrawCode = `    ctx.beginPath();
-    for (let i = 0; i < 4; i++) {
-      const angle = (i / 4) * Math.PI * 2 - Math.PI / 2;
-      const x = cx + Math.cos(angle) * r;
-      const y = cy + Math.sin(angle) * r;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();`;
+      shapeDrawCode = `      ctx.beginPath();
+      for (let i = 0; i < 4; i++) {
+        const angle = (i / 4) * Math.PI * 2 - Math.PI / 2;
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();`;
       break;
     case "pentagon":
-      shapeDrawCode = `    ctx.beginPath();
-    for (let i = 0; i < 5; i++) {
-      const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
-      const x = cx + Math.cos(angle) * r;
-      const y = cy + Math.sin(angle) * r;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();`;
+      shapeDrawCode = `      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();`;
       break;
     case "star":
-      shapeDrawCode = `    ctx.beginPath();
-    for (let i = 0; i < 10; i++) {
-      const angle = (i / 10) * Math.PI * 2 - Math.PI / 2;
-      const rad = i % 2 === 0 ? r : r * 0.4;
-      const x = cx + Math.cos(angle) * rad;
-      const y = cy + Math.sin(angle) * rad;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();`;
+      shapeDrawCode = `      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const angle = (i / 10) * Math.PI * 2 - Math.PI / 2;
+        const rad = i % 2 === 0 ? r : r * 0.4;
+        const x = cx + Math.cos(angle) * rad;
+        const y = cy + Math.sin(angle) * rad;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();`;
       break;
     default:
-      shapeDrawCode = `    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fill();`;
+      shapeDrawCode = `      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();`;
       break;
   }
+
+  const textureFunction = glow
+    ? `    function createParticleTexture() {
+      const s = 128;
+      const canvas = document.createElement("canvas");
+      canvas.width = s;
+      canvas.height = s;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, s, s);
+      const cx = s / 2, cy = s / 2;
+      const outerRadius = cx * ${(0.6 + (blur / 100) * 0.4).toFixed(2)};
+      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, outerRadius);
+      gradient.addColorStop(0, "rgba(255,255,255,1.0)");
+      gradient.addColorStop(0.1, "rgba(255,255,255,0.8)");
+      gradient.addColorStop(0.4, "rgba(255,255,255,0.3)");
+      gradient.addColorStop(0.7, "rgba(255,255,255,0.08)");
+      gradient.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, s, s);
+      return new THREE.CanvasTexture(canvas);
+    }`
+    : `    function createParticleTexture() {
+      const s = 128;
+      const canvas = document.createElement("canvas");
+      canvas.width = s;
+      canvas.height = s;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, s, s);
+      ctx.filter = "blur(${blurPx}px)";
+      ctx.fillStyle = "#ffffff";
+      const cx = s / 2, cy = s / 2, r = Math.max(4, s / 2 - 4 - ${blurPx});
+${shapeDrawCode}
+      return new THREE.CanvasTexture(canvas);
+    }`;
+
+  const phasesInit = glow
+    ? `    const phases = new Float32Array(PARTICLE_COUNT);
+    for (let i = 0; i < PARTICLE_COUNT; i++) phases[i] = Math.random() * Math.PI * 2;`
+    : "";
+
+  const twinkleCode = glow
+    ? `
+      // Twinkling
+      const col = geometry.attributes.color.array;
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const twinkle = 1.0 + Math.sin(t * 1.5 + phases[i]) * ${twinkleAmp};
+        col[i * 3] = baseColors[i * 3] * twinkle;
+        col[i * 3 + 1] = baseColors[i * 3 + 1] * twinkle;
+        col[i * 3 + 2] = baseColors[i * 3 + 2] * twinkle;
+      }
+      geometry.attributes.color.needsUpdate = true;`
+    : "";
+
+  const baseColorsLine = glow ? `\n    const baseColors = new Float32Array(colors);` : "";
+  const blendingLine = glow ? `\n      blending: THREE.AdditiveBlending,` : "";
+  const opacityVal = glow ? "0.9" : "0.8";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -90,22 +154,11 @@ export function generateCode(settings: { shape: string; blur: number; color: str
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
-    // Create particle shape texture
-    function createParticleTexture() {
-      const s = 64;
-      const canvas = document.createElement("canvas");
-      canvas.width = s;
-      canvas.height = s;
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, s, s);
-      ctx.fillStyle = "#ffffff";
-      const cx = s / 2, cy = s / 2, r = s / 2 - 2;
-${shapeDrawCode}
-      return new THREE.CanvasTexture(canvas);
-    }
+${textureFunction}
 
     const positions = new Float32Array(PARTICLE_COUNT * 3);
     const colors = new Float32Array(PARTICLE_COUNT * 3);
+${phasesInit}
     const base = new THREE.Color("${baseColor}");
     const hsl = { h: 0, s: 0, l: 0 };
     base.getHSL(hsl);
@@ -124,7 +177,7 @@ ${shapeDrawCode}
       colors[i * 3 + 1] = c.g;
       colors[i * 3 + 2] = c.b;
     }
-
+${baseColorsLine}
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
@@ -133,8 +186,8 @@ ${shapeDrawCode}
       size: ${size},
       vertexColors: true,
       transparent: true,
-      opacity: ${opacity},
-      depthWrite: false,
+      opacity: ${opacityVal},
+      depthWrite: false,${blendingLine}
     });
     const points = new THREE.Points(geometry, material);
     scene.add(points);
@@ -149,7 +202,7 @@ ${shapeDrawCode}
       for (let i = 0; i < PARTICLE_COUNT; i++) {
         pos[i * 3 + 1] += Math.sin(t + pos[i * 3]) * 0.001;
       }
-      geometry.attributes.position.needsUpdate = true;
+      geometry.attributes.position.needsUpdate = true;${twinkleCode}
       controls.update();
       renderer.render(scene, camera);
     }

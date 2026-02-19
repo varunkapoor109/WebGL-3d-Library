@@ -7,6 +7,8 @@ import { snippets } from "@/snippets";
 import {
   savedParticleFieldSettings,
   savedWaveSphereSettings,
+  savedSvgParticlesSettings,
+  savedParticleStreamSettings,
 } from "@/lib/animation-settings";
 
 function getSavedSettings(animId: string): Record<string, unknown> | undefined {
@@ -15,6 +17,19 @@ function getSavedSettings(animId: string): Record<string, unknown> | undefined {
       return { ...savedParticleFieldSettings };
     case "wave-sphere":
       return { ...savedWaveSphereSettings };
+    case "svg-particles":
+      return {
+        blur: savedSvgParticlesSettings.blur,
+        color: savedSvgParticlesSettings.color,
+        intensity: savedSvgParticlesSettings.intensity,
+        angleX: savedSvgParticlesSettings.angleX,
+        angleY: savedSvgParticlesSettings.angleY,
+        angleZ: savedSvgParticlesSettings.angleZ,
+        particleCount: savedSvgParticlesSettings.particleCount,
+        svgRaw: savedSvgParticlesSettings.svgRaw,
+      };
+    case "particle-stream":
+      return { ...savedParticleStreamSettings };
     default:
       return undefined;
   }

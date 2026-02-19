@@ -1,9 +1,11 @@
 "use client";
 
+import { useRef, useState, useCallback } from "react";
 import {
   useSettingsStore,
   updateWaveSphere,
   saveWaveSphere,
+  resetWaveSphereToDefaults,
   type WaveSphereSettings,
 } from "@/lib/animation-settings";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -23,8 +25,34 @@ const SHAPE_OPTIONS: { value: WaveSphereSettings["shape"]; label: string }[] = [
   { value: "dodecahedron", label: "Dodecahedron" },
 ];
 
+function isDirty(
+  live: WaveSphereSettings,
+  saved: WaveSphereSettings,
+): boolean {
+  return (
+    live.shape !== saved.shape ||
+    live.color !== saved.color
+  );
+}
+
 export function WaveSphereController() {
-  const { waveSphere } = useSettingsStore();
+  const { waveSphere, savedWaveSphere } = useSettingsStore();
+  const [showAlert, setShowAlert] = useState(false);
+  const alertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const dirty = isDirty(waveSphere, savedWaveSphere);
+
+  const handleSave = useCallback(() => {
+    saveWaveSphere();
+    setShowAlert(true);
+    if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
+    alertTimerRef.current = setTimeout(() => setShowAlert(false), 3000);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    resetWaveSphereToDefaults();
+    setShowAlert(false);
+  }, []);
 
   return (
     <ScrollArea className="flex-1">
@@ -78,13 +106,32 @@ export function WaveSphereController() {
           </div>
         </div>
 
-        {/* Save */}
-        <button
-          onClick={saveWaveSphere}
-          className="w-full rounded-md bg-[#8b5cf6] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#7c3aed]"
-        >
-          Save Settings
-        </button>
+        {/* Save + Reset */}
+        <div className="space-y-2">
+          <button
+            onClick={handleSave}
+            disabled={!dirty}
+            className={`w-full rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+              dirty
+                ? "bg-[#8b5cf6] text-white hover:bg-[#7c3aed]"
+                : "cursor-not-allowed bg-[var(--muted)] text-[var(--muted-foreground)] opacity-50"
+            }`}
+          >
+            Save Settings
+          </button>
+          <button
+            onClick={handleReset}
+            className="w-full rounded-md border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+          >
+            Reset to Default
+          </button>
+        </div>
+
+        {showAlert && (
+          <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400">
+            Code has been updated.
+          </div>
+        )}
       </div>
     </ScrollArea>
   );

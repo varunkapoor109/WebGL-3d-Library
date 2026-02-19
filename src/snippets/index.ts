@@ -7,6 +7,12 @@ import { generateCode as waveSphereNodejs } from "./wave-sphere/nodejs";
 import { code as handParticlesNextjs } from "./hand-particles/nextjs";
 import { code as handParticlesReact } from "./hand-particles/react";
 import { code as handParticlesNodejs } from "./hand-particles/nodejs";
+import { generateCode as svgParticlesNextjs } from "./svg-particles/nextjs";
+import { generateCode as svgParticlesReact } from "./svg-particles/react";
+import { generateCode as svgParticlesNodejs } from "./svg-particles/nodejs";
+import { generateCode as particleStreamNextjs } from "./particle-stream/nextjs";
+import { generateCode as particleStreamReact } from "./particle-stream/react";
+import { generateCode as particleStreamNodejs } from "./particle-stream/nodejs";
 
 export type SnippetGenerator = (settings?: Record<string, unknown>) => string;
 
@@ -31,5 +37,15 @@ export const snippets: Record<string, SnippetSet> = {
     nextjs: () => handParticlesNextjs,
     react: () => handParticlesReact,
     nodejs: () => handParticlesNodejs,
+  },
+  "svg-particles": {
+    nextjs: (s) => svgParticlesNextjs(s as { blur: number; color: string; intensity: number; angleX: number; angleY: number; angleZ: number; particleCount: number; svgRaw: string | null }),
+    react: (s) => svgParticlesReact(s as { blur: number; color: string; intensity: number; angleX: number; angleY: number; angleZ: number; particleCount: number; svgRaw: string | null }),
+    nodejs: (s) => svgParticlesNodejs(s as { blur: number; color: string; intensity: number; angleX: number; angleY: number; angleZ: number; particleCount: number; svgRaw: string | null }),
+  },
+  "particle-stream": {
+    nextjs: (s) => particleStreamNextjs(s as { colorTop: string; colorBottom: string; speed: number; particleCount: number; motionBlur: number }),
+    react: (s) => particleStreamReact(s as { colorTop: string; colorBottom: string; speed: number; particleCount: number; motionBlur: number }),
+    nodejs: (s) => particleStreamNodejs(s as { colorTop: string; colorBottom: string; speed: number; particleCount: number; motionBlur: number }),
   },
 };
